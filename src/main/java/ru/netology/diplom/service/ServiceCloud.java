@@ -2,7 +2,6 @@ package ru.netology.diplom.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import ru.netology.diplom.exceptions.ErrorFileException;
@@ -63,7 +62,7 @@ public class ServiceCloud {
         return fileRepository.findFileDataByUserData(userData);
     }
 
-    public ByteArrayResource fileDownload(String name, String token) {
+    public byte[] fileDownload(String name, String token) {
         UserData userName = getUserByAuthToken(token);
         if (userName == null) {
             log.error("Ошибка скачивания файла");
@@ -71,7 +70,7 @@ public class ServiceCloud {
         }
         FileData fileData = fileRepository.findByFileNameAndUserData(name, userName);
         log.info("Файл {} успешно скачан", fileData.getFileName());
-        return new ByteArrayResource(fileData.getFileData());
+        return fileData.getFileData();
     }
 
     public void fileDelete(String fileName, String token) {

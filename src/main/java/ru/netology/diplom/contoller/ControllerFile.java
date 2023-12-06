@@ -1,6 +1,7 @@
 package ru.netology.diplom.contoller;
 
 import lombok.AllArgsConstructor;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -34,7 +35,8 @@ public class ControllerFile {
     @GetMapping("/file")
     public ResponseEntity<Resource> fileDownload(@RequestHeader("auth-token") String token,
                                                  @RequestParam("filename") String fileName) {
-        return ResponseEntity.ok(cloud.fileDownload(fileName, token));
+        byte[] file = cloud.fileDownload(fileName,token);
+        return ResponseEntity.ok(new ByteArrayResource(file));
     }
 
     @DeleteMapping("/file")
