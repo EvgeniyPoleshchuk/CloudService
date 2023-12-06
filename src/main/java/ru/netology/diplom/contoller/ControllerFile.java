@@ -1,7 +1,6 @@
 package ru.netology.diplom.contoller;
 
 import lombok.AllArgsConstructor;
-
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,6 +9,7 @@ import org.springframework.web.multipart.MultipartFile;
 import ru.netology.diplom.dto.FileResponse;
 import ru.netology.diplom.model.RenameFile;
 import ru.netology.diplom.service.ServiceCloud;
+
 import java.util.List;
 
 @RestController
@@ -27,7 +27,8 @@ public class ControllerFile {
 
     @GetMapping("/list")
     public List<FileResponse> list(@RequestHeader("auth-token") String token, @RequestParam("limit") Integer limit) {
-        return cloud.allFiles(token,limit);
+        return cloud.allFiles(token, limit).stream()
+                .map(a -> new FileResponse(a.getFileName(), a.getSize())).toList();
     }
 
     @GetMapping("/file")

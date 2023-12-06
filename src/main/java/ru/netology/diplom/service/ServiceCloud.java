@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import ru.netology.diplom.dto.FileResponse;
 import ru.netology.diplom.exceptions.ErrorFileException;
 import ru.netology.diplom.exceptions.ErrorInputDataException;
 import ru.netology.diplom.model.FileData;
@@ -54,15 +53,14 @@ public class ServiceCloud {
         }
     }
 
-    public List<FileResponse> allFiles(String token, Integer limit) {
+    public List<FileData> allFiles(String token, Integer limit) {
         UserData userData = getUserByAuthToken(token);
         if (userData == null) {
             log.error("Ошибка вывода списка всех файлов");
             throw new ErrorInputDataException("Ошибка вывода списка всех файлов");
         }
         log.info("Список файлов успешно выведен на экран");
-        return fileRepository.findFileDataByUserData(userData).stream()
-                .map(a -> new FileResponse(a.getFileName(), a.getSize())).toList();
+        return fileRepository.findFileDataByUserData(userData);
     }
 
     public ByteArrayResource fileDownload(String name, String token) {
