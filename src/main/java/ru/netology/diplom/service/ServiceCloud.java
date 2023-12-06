@@ -31,10 +31,10 @@ public class ServiceCloud {
     private UserTokenRepository tokenRepository;
     private AtomicInteger count = new AtomicInteger(0);
 
-    public String fileUpload(String token, String name, MultipartFile file) {
+    public void fileUpload(String token, String name, MultipartFile file) {
         UserData user = getUserByAuthToken(token);
         assert user != null;
-        FileData fileDataFromBd = fileRepository.findByFileNameAndUserDataEmail(name, user.getEmail());
+        final FileData fileDataFromBd = fileRepository.findByFileNameAndUserData(name, user);
         FileData fileData;
         try {
             fileData = FileData.builder()
@@ -49,21 +49,19 @@ public class ServiceCloud {
             }
             fileRepository.save(fileData);
             log.info("Файл {} успешно загружен", fileData.getFileName());
-
-            return "Файл успешно загружен";
         } catch (IOException e) {
             throw new ErrorFileException("Не удалось загрузить файл");
         }
     }
 
     public List<FileResponse> allFiles(String token, Integer limit) {
-        UserData data = getUserByAuthToken(token);
-        if (data == null) {
+        UserData userData = getUserByAuthToken(token);
+        if (userData == null) {
             log.error("Ошибка вывода списка всех файлов");
             throw new ErrorInputDataException("Ошибка вывода списка всех файлов");
         }
         log.info("Список файлов успешно выведен на экран");
-        return fileRepository.findFileDataByUserDataEmail(data.getEmail()).stream()
+        return fileRepository.findFileDataByUserData(userData).stream()
                 .map(a -> new FileResponse(a.getFileName(), a.getSize())).toList();
     }
 
@@ -73,7 +71,7 @@ public class ServiceCloud {
             log.error("Ошибка скачивания файла");
             throw new ErrorFileException("Ошибка скачивания файла");
         }
-        FileData fileData = fileRepository.findByFileNameAndUserDataEmail(name, userName.getEmail());
+        FileData fileData = fileRepository.findByFileNameAndUserData(name, userName);
         log.info("Файл {} успешно скачан", fileData.getFileName());
         return new ByteArrayResource(fileData.getFileData());
     }
@@ -84,7 +82,7 @@ public class ServiceCloud {
             log.error("Не удалось удалить файл");
             throw new ErrorFileException("Ошибка удаления файла");
         }
-        FileData fileData = fileRepository.findByFileNameAndUserDataEmail(fileName, userName.getEmail());
+        FileData fileData = fileRepository.findByFileNameAndUserData(fileName, userName);
         fileRepository.delete(fileData);
         log.info("Файл {} успешно удален", fileData.getFileName());
     }
@@ -95,7 +93,10 @@ public class ServiceCloud {
             log.error("Ошибка переименования файла");
             throw new ErrorFileException("Ошибка переименования файла");
         }
-        FileData fileData = fileRepository.findByFileNameAndUserDataEmail(fileName, userName.getEmail());
+        FileData fileData = fileRepository.findByFileNameAndUserData(fileName, userName);
+        if(fileData == null){
+            throw new ErrorFileException("Ошибка переименования файла");
+        }
         fileData.setFileName(renameFile.getFilename());
         fileRepository.save(fileData);
         log.info("Файл {} успешно переименован в {} ", fileName, renameFile.getFilename());

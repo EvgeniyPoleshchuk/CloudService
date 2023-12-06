@@ -51,7 +51,7 @@ class ServiceTest {
 
     @BeforeEach
     void setUp() {
-        Mockito.when(fileRepository.findByFileNameAndUserDataEmail("test1.jpg", "2x2")).thenReturn(FILEDATA);
+        Mockito.when(fileRepository.findByFileNameAndUserData("test1.jpg", userData)).thenReturn(FILEDATA);
         Mockito.when(userTokenRepository.getUserNameByToken(BEARER_TOKEN.split(" ")[1])).thenReturn("2x2");
         Mockito.when(userRepository.findByEmail("2x2")).thenReturn(userData);
     }
@@ -60,10 +60,8 @@ class ServiceTest {
     void upload() {
         byte[] test = "accept".getBytes();
         MockMultipartFile file = new MockMultipartFile("testFile", test);
-        String accept = "Файл успешно загружен";
-        Mockito.when(fileRepository.findByFileNameAndUserDataEmail("testFile", "2x2")).thenReturn(FILEDATA);
-        assertEquals(accept, cloud.fileUpload(BEARER_TOKEN, "testFile", file));
-
+        Mockito.when(fileRepository.findByFileNameAndUserData("testFile", userData)).thenReturn(FILEDATA);
+        Mockito.verify(cloud,Mockito.times(1)).fileUpload(BEARER_TOKEN, "testFile", file);
     }
 
     @Test
@@ -72,7 +70,7 @@ class ServiceTest {
                 , new FileResponse("test2.jpg", 1000));
 
         List<FileData> list1 = List.of(FILEDATA, FILEDATA1);
-        Mockito.when(fileRepository.findFileDataByUserDataEmail("2x2")).thenReturn(list1);
+        Mockito.when(fileRepository.findFileDataByUserData(userData)).thenReturn(list1);
 
         assertEquals(list, cloud.allFiles(BEARER_TOKEN, 3));
     }
@@ -80,7 +78,7 @@ class ServiceTest {
     @Test
     void fileDownload() {
         ByteArrayResource byteArrayResource = new ByteArrayResource(FILEDATA.getFileData());
-        Mockito.when(fileRepository.findByFileNameAndUserDataEmail("testFile", "2x2")).thenReturn(FILEDATA);
+        Mockito.when(fileRepository.findByFileNameAndUserData("testFile", userData)).thenReturn(FILEDATA);
         assertEquals(byteArrayResource, cloud.fileDownload("testFile", BEARER_TOKEN));
     }
 
